@@ -1,0 +1,222 @@
+{
+    "C_Cpp.errorSquiggles": "disabled",
+    "files.associations": {
+        "*.cpp": "cpp",
+        "vendor_ai_cpu.h": "c",
+        "vendor_ai_cpu_postproc.h": "c",
+        "complex": "cpp",
+        "tc_interface.h": "c",
+        "tc_common.h": "c",
+        "iostream": "cpp",
+        "fstream": "cpp",
+        "cctype": "cpp",
+        "clocale": "cpp",
+        "cmath": "cpp",
+        "csignal": "cpp",
+        "cstdarg": "cpp",
+        "cstddef": "cpp",
+        "cstdio": "cpp",
+        "cstdlib": "cpp",
+        "cstring": "cpp",
+        "ctime": "cpp",
+        "cwchar": "cpp",
+        "cwctype": "cpp",
+        "array": "cpp",
+        "atomic": "cpp",
+        "strstream": "cpp",
+        "*.tcc": "cpp",
+        "bitset": "cpp",
+        "chrono": "cpp",
+        "cinttypes": "cpp",
+        "codecvt": "cpp",
+        "condition_variable": "cpp",
+        "cstdint": "cpp",
+        "deque": "cpp",
+        "forward_list": "cpp",
+        "list": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp",
+        "vector": "cpp",
+        "exception": "cpp",
+        "algorithm": "cpp",
+        "functional": "cpp",
+        "iterator": "cpp",
+        "map": "cpp",
+        "memory": "cpp",
+        "memory_resource": "cpp",
+        "numeric": "cpp",
+        "optional": "cpp",
+        "random": "cpp",
+        "ratio": "cpp",
+        "regex": "cpp",
+        "set": "cpp",
+        "string": "cpp",
+        "string_view": "cpp",
+        "system_error": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "utility": "cpp",
+        "future": "cpp",
+        "initializer_list": "cpp",
+        "iomanip": "cpp",
+        "iosfwd": "cpp",
+        "istream": "cpp",
+        "limits": "cpp",
+        "mutex": "cpp",
+        "new": "cpp",
+        "ostream": "cpp",
+        "shared_mutex": "cpp",
+        "sstream": "cpp",
+        "stdexcept": "cpp",
+        "streambuf": "cpp",
+        "thread": "cpp",
+        "cfenv": "cpp",
+        "typeindex": "cpp",
+        "typeinfo": "cpp",
+        "valarray": "cpp",
+        "*.inc": "cpp",
+        "*.ipp": "cpp",
+        "tensor": "cpp",
+        "*.def": "cpp",
+        "vendor_videoprocess.h": "c",
+        "filesystem": "cpp",
+        "bit": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "numbers": "cpp",
+        "semaphore": "cpp",
+        "stop_token": "cpp",
+        "any": "cpp",
+        "hash_map": "cpp",
+        "ranges": "cpp",
+        "span": "cpp",
+        "variant": "cpp",
+        "alignedvector3": "cpp",
+        "vendor_audiocapture.h": "c",
+        "vendor_vpe.h": "c",
+        "core": "cpp",
+        "superlusupport": "cpp",
+        "*.evaluator": "cpp",
+        "*.traits": "cpp",
+        "adolcforward": "cpp",
+        "autodiff": "cpp",
+        "bvh": "cpp",
+        "eulerangles": "cpp",
+        "fft": "cpp",
+        "kroneckerproduct": "cpp",
+        "mprealsupport": "cpp",
+        "nnls": "cpp",
+        "numericaldiff": "cpp",
+        "openglsupport": "cpp",
+        "specialfunctions": "cpp",
+        "splines": "cpp",
+        "hd_debug.h": "c",
+        "pvdcnn_lib.h": "c",
+        "limit_fdet_lib.h": "c",
+        "*.tpp": "cpp",
+        "*.expression": "cpp",
+        "yolov5s_postprocess.h": "c",
+        "executor": "cpp",
+        "timer": "cpp",
+        "io_context": "cpp",
+        "netfwd": "cpp",
+        "md_lib_ex.h": "c",
+        "vendor_md.h": "c",
+        "time.h": "c",
+        "hd_gfx.h": "c",
+        "hd_common.h": "c",
+        "ext_module_api.h": "c",
+        "pthread.h": "c",
+        "libmd.h": "c",
+        "media.h": "c",
+        "sw_tracker.h": "c"
+    },
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.autopep8"
+    },
+    "cmake.configureOnOpen": false,
+    "cmake.generator": "Ninja",
+    // 如果--compile-commands-dir目录下查找不到的头文件路径,添加到下面这里
+    "clangd.fallbackFlags": [
+    ],
+    "clangd.arguments": [
+        "--background-index",
+        "--all-scopes-completion",
+        "--completion-style=detailed",
+        "--header-insertion=iwyu",
+        // 如果出现查找不到iostream的情况,
+        // 把"/opt/arm-ca9-linux-uclibcgnueabihf-8.4.01/bin/arm-linux-g++"这个编译选项去掉
+        // motovis arc_soft fdcnn
+        "--compile-commands-dir=${workspaceFolder}/build",
+        "-j=12",
+        "--clang-tidy",
+        // 添加这个可以查找标准C++头文件
+        "--query-driver=D:/software/mingw/bin/g++*"
+    ],
+    "clangd.serverCompletionRanking": true,
+    "clang-format.style": "file",
+    "clang-format.language.cpp.style": "file",
+    "clang-format.language.c.style": "file",
+    "clang-format.fallbackStyle": "Google",
+    "clang-format.language.c.fallbackStyle": "Google",
+    "clang-format.language.cpp.fallbackStyle": "Google",
+    "[cpp]": {
+        // 在cpp文件中，编辑器在保存的时候进行格式化
+        "editor.formatOnSave": false,
+        // 在cpp文件中，编辑器在打字的时候进行格式化
+        "editor.formatOnType": false,
+        // 在cpp文件中，编辑器在粘贴的时候进行格式化
+        "editor.formatOnPaste": false,
+        // 在cpp文件中，编辑器的默认格式化器为 "xaver.clang-format"
+        // 这里的"xaver.clang-format"就是我们安装的clang-format
+        // vscode插件
+        "editor.defaultFormatter": "xaver.clang-format"
+    },
+    "python.analysis.typeCheckingMode": "basic",
+    "python.REPL.enableREPLSmartSend": false,
+    // Doxygen documentation generator set
+    // 文件注释：版权信息模板
+    "doxdocgen.file.copyrightTag": [
+        "@copyright Copyright (c) {year}  XX通信公司"
+    ],
+    // 文件注释：自定义模块，这里我添加一个修改日志
+    "doxdocgen.file.customTag": [
+        "@par 修改日志:",
+        "<table>",
+        "<tr><th>Date       <th>Version <th>Author  <th>Description",
+        "<tr><td>{date} <td>1.0     <td>wangh     <td>内容",
+        "</table>",
+    ],
+    // 文件注释的组成及其排序
+    "doxdocgen.file.fileOrder": [
+        "file",		// @file
+        "brief",	// @brief 简介
+        "author",	// 作者
+        "version",	// 版本
+        "date",		// 日期
+        "empty",	// 空行
+        "copyright",// 版权
+        "empty",
+        "custom"	// 自定义
+    ],
+    // 下面时设置上面标签tag的具体信息
+    "doxdocgen.file.fileTemplate": "@file {name}",
+    "doxdocgen.file.versionTag": "@version 1.0",
+    "doxdocgen.generic.authorEmail": "wanghuan3037@fiberhome.com",
+    "doxdocgen.generic.authorName": "wangh",
+    "doxdocgen.generic.authorTag": "@author {author} ({email})",
+    // 日期格式与模板
+    "doxdocgen.generic.dateFormat": "YYYY-MM-DD",
+    "doxdocgen.generic.dateTemplate": "@date {date}",
+	
+    // 根据自动生成的注释模板（目前主要体现在函数注释上）
+    "doxdocgen.generic.order": [
+        "brief",
+        "tparam",
+        "param",
+        "return"
+    ],
+    "doxdocgen.generic.paramTemplate": "@param{indent:8}{param}{indent:25}My Param doc",
+    "doxdocgen.generic.returnTemplate": "@return {type} ",
+    "doxdocgen.generic.splitCasingSmartText": true,
+}
