@@ -28,5 +28,4 @@ int main() {
     print("before", vec);
     sort(vec);
     print("after", vec);
-    
 }

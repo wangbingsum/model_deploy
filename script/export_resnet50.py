@@ -12,7 +12,7 @@ dummy_input = torch.randn(1, 3, 224, 224)  # 1个样本、3通道、224×224
 torch.onnx.export(
     model=model,                # 待转换的PyTorch模型
     args=(dummy_input, ),           # 虚拟输入（确定模型计算图）
-    f="model/resnet50_pytorch.onnx",  # 输出ONNX模型文件名
+    f="model/resnet50.onnx",  # 输出ONNX模型文件名
     input_names=["input"],      # 输入节点名称（方便后续推理调用）
     output_names=["output"],    # 输出节点名称
     opset_version=12            # ONNX算子集版本（推荐11-13，兼容性好）
