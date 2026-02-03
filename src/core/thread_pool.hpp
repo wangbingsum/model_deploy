@@ -14,6 +14,7 @@
 #include <memory>          // std::shared_ptr / std::make_shared
 #include <stdexcept>       // std::runtime_error（异常抛出）
 #include <utility>         // std::forward / std::move（完美转发）
+#include <iostream>
 
 class ThreadPool {
 public:

@@ -5,7 +5,7 @@
     // 如果--compile-commands-dir目录下查找不到的头文件路径,添加到下面这里
     "clangd.fallbackFlags": [
     ],
-    "clangd.path": "/usr/bin/clangd",
+    // "clangd.path": "/usr/bin/clangd",
     "clangd.arguments": [
         "--compile-commands-dir=${workspaceFolder}/build",
         "--header-insertion=never",

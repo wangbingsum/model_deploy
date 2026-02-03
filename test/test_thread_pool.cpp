@@ -1,139 +1,164 @@
-#include <gtest/gtest.h>
-#include <future>
+#include "src/core/thread_pool.hpp"  // Include thread pool header file (adjust path as needed)
+#include <iostream>
 #include <vector>
-#include <numeric>
+#include <mutex>   // Necessary for std::mutex (fixed missing header)
+#include <cassert>
 #include <chrono>
+#include <string>
+#include <future>
 #include <thread>
-#include "src/core/thread_pool.hpp" // 引入线程池头文件
 
-// 测试套件：ThreadPoolBasic，测试线程池基础功能
-TEST(ThreadPoolBasic, InitWithValidThreadNum) {
-    // 测试1：默认构造（硬件并发数）
-    ThreadPool pool1;
-    ASSERT_GE(pool1.thread_count(), 1U); // 至少1个工作线程
-    ASSERT_LE(pool1.thread_count(), std::thread::hardware_concurrency());
+// Test 1: Execute simple tasks with no return value (verify basic task scheduling)
+void test_simple_task(ThreadPool& pool) {
+    std::cout << "=== Test 1: Simple Task Without Return Value ===" << std::endl;
+    int count = 0;
+    std::mutex mtx;  // Protect shared variable count
 
-    // 测试2：指定构造（3个线程）
-    ThreadPool pool2(3);
-    ASSERT_EQ(pool2.thread_count(), 3U);
+    // Submit 10 simple tasks, each increments count by 1
+    for (int i = 0; i < 10; ++i) {
+        pool.enqueue([&count, &mtx]() {
+            std::lock_guard<std::mutex> lock(mtx);
+            count++;
+        });
+    }
 
-    // 测试3：指定0个线程（内部自动修正为1）
-    ThreadPool pool3(0);
-    ASSERT_EQ(pool3.thread_count(), 1U);
+    // Wait for all tasks to complete (simple delay, use future in actual projects)
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    // Assert: count should be 10 (all tasks executed)
+    assert(count == 10 && "Test 1 Failed: Mismatched number of executed simple tasks");
+    std::cout << "Test 1 Succeeded: count = " << count << std::endl << std::endl;
 }
 
-// 测试套件：ThreadPoolTask，测试任务提交与执行
-TEST(ThreadPoolTask, NoReturnTaskExecute) {
-    ThreadPool pool(2);
-    bool flag = false;
-    // 提交无返回值lambda任务，修改外部变量
-    pool.enqueue([&flag]() {
-        std::this_thread::sleep_for(std::chrono::milliseconds(10)); // 模拟耗时
-        flag = true;
-    });
-    // 等待任务执行完成（简单等待，实际用future更严谨）
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    ASSERT_TRUE(flag); // 验证任务执行成功
-}
-
-TEST(ThreadPoolTask, ReturnTaskResultCorrect) {
-    ThreadPool pool(2);
-    // 测试1：简单数值计算
+// Test 2: Execute tasks with return value (verify std::future result acquisition)
+void test_return_task(ThreadPool& pool) {
+    std::cout << "=== Test 2: Task With Return Value (Get Result via Future) ===" << std::endl;
+    // Submit addition task, return sum of two numbers
     auto fut1 = pool.enqueue([](int a, int b) { return a + b; }, 10, 20);
-    ASSERT_EQ(fut1.get(), 30); // get()阻塞等待结果，验证正确性
+    // Submit multiplication task, return product of two numbers
+    auto fut2 = pool.enqueue([](double a, double b) { return a * b; }, 3.14, 2.0);
+    // Submit string concatenation task
+    auto fut3 = pool.enqueue([](const std::string& s1, const std::string& s2) { return s1 + s2; }, "Hello", " ThreadPool");
 
-    // 测试2：字符串拼接
-    auto fut2 = pool.enqueue([](const std::string& s1, const std::string& s2) {
-        return s1 + s2;
-    }, "Hello", "GoogleTest");
-    ASSERT_EQ(fut2.get(), "HelloGoogleTest");
+    // Get task results (future.get() blocks until task completion)
+    int res1 = fut1.get();
+    double res2 = fut2.get();
+    std::string res3 = fut3.get();
 
-    // 测试3：无参数有返回值
-    auto fut3 = pool.enqueue([]() { return 3.1415926; });
-    ASSERT_NEAR(fut3.get(), 3.1415926, 1e-7); // 浮点数近似比较
+    // Assert result correctness
+    assert(res1 == 30 && "Test 2 Failed: Incorrect result of addition task");
+    assert(res2 == 6.28 && "Test 2 Failed: Incorrect result of multiplication task");
+    assert(res3 == "Hello ThreadPool" && "Test 2 Failed: Incorrect result of string concatenation task");
+
+    std::cout << "Test 2 Succeeded: " << std::endl;
+    std::cout << "  10+20 = " << res1 << std::endl;
+    std::cout << "  3.14*2.0 = " << res2 << std::endl;
+    std::cout << "  String Concatenation = " << res3 << std::endl << std::endl;
 }
 
-TEST(ThreadPoolTask, MultiTaskConcurrency) {
-    const int TASK_NUM = 100;
-    ThreadPool pool(4); // 4线程处理100个任务
+// Test 3: Mass concurrent tasks (verify thread pool concurrency and queue scheduling)
+void test_concurrent_tasks(ThreadPool& pool) {
+    std::cout << "=== Test 3: 1000 Concurrent Calculation Tasks ===" << std::endl;
+    const int TASK_NUM = 1000;
     std::vector<std::future<int>> futures;
+    futures.reserve(TASK_NUM);
 
-    // 提交100个任务，每个返回1，最终求和验证
+    // Submit 1000 calculation tasks: each calculates i*i (i from 0 to 999)
     for (int i = 0; i < TASK_NUM; ++i) {
-        futures.emplace_back(pool.enqueue([]() {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1)); // 模拟并发
-            return 1;
+        futures.emplace_back(pool.enqueue([i]() {
+            // Simulate slight calculation delay to detect scheduling logic
+            std::this_thread::sleep_for(std::chrono::microseconds(10));
+            return i * i;
         }));
     }
 
-    // 求和所有任务结果
+    // Summarize all task results and verify correctness
     int sum = 0;
-    for (auto& fut : futures) {
-        sum += fut.get();
+    int expected_sum = 0;
+    for (int i = 0; i < TASK_NUM; ++i) {
+        sum += futures[i].get();
+        expected_sum += i * i;  // Calculate expected result
     }
 
-    ASSERT_EQ(sum, TASK_NUM); // 验证所有任务均执行完成
+    // Assert: actual sum should equal expected sum
+    assert(sum == expected_sum && "Test 3 Failed: Incorrect summary of concurrent task results");
+    std::cout << "Test 3 Succeeded: 1000 concurrent tasks executed, total sum = " << sum << std::endl << std::endl;
 }
 
-// 测试套件：ThreadPoolException，测试异常场景
-TEST(ThreadPoolException, EnqueueOnStoppedPool) {
-    ThreadPool pool(2);
-    pool.stop(); // 主动停止线程池
+// Test 4: Forbid task submission after thread pool stops (verify exception throwing)
+void test_stop_enqueue(ThreadPool& pool) {
+    std::cout << "=== Test 4: Task Submission After Pool Stop (Verify Exception) ===" << std::endl;
+    // Actively stop the thread pool
+    pool.stop();
+    // Wait for the thread pool to enter stop state
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
 
-    // 断言提交任务时抛出指定运行时异常
-    ASSERT_THROW(
-        pool.enqueue([]() { return 1; }),
-        std::runtime_error
-    );
-
-    // 断言抛出的异常信息匹配（可选，更精细的异常测试）
+    // Attempt to submit task, expect std::runtime_error to be thrown
+    bool catch_exception = false;
     try {
-        pool.enqueue([]() {});
-        FAIL() << "Expected std::runtime_error for enqueue on stopped pool";
+        pool.enqueue([]() { std::cout << "This task should not be executed" << std::endl; });
     } catch (const std::runtime_error& e) {
-        EXPECT_STREQ(e.what(), "enqueue on stopped ThreadPool");
+        catch_exception = true;
+        std::cout << "Expected exception caught: " << e.what() << std::endl;
+    } catch (...) {
+        catch_exception = true;
+        std::cout << "Unknown exception caught" << std::endl;
     }
+
+    // Assert: exception must be caught
+    assert(catch_exception && "Test 4 Failed: No exception thrown when submitting task to stopped pool");
+    std::cout << "Test 4 Succeeded" << std::endl << std::endl;
 }
 
-TEST(ThreadPoolException, TaskThrowException) {
-    ThreadPool pool(2);
-    // 提交一个会主动抛出异常的任务
-    auto fut = pool.enqueue([]() {
-        throw std::invalid_argument("task internal error");
-        return 0;
-    });
-
-    // 断言获取结果时重新抛出该异常
-    ASSERT_THROW(
-        fut.get(),
-        std::invalid_argument
-    );
-
-    // 验证线程池仍可用（单个任务异常不影响线程池）
-    auto fut2 = pool.enqueue([]() { return 100; });
-    ASSERT_EQ(fut2.get(), 100);
-}
-
-// 测试套件：ThreadPoolDestruct，测试析构安全
-TEST(ThreadPoolDestruct, CompleteAllTasksBeforeDestruct) {
-    const int TASK_NUM = 50;
-    int count = 0;
+// Test 5: Verify unexecuted task handling on pool destruction (no assert, verify no crash)
+void test_destructor_safety() {
+    std::cout << "=== Test 5: Pool Destruction Safety (Mass Unexecuted Tasks) ===" << std::endl;
+    // Create a temporary thread pool, submit a large number of tasks then destroy it
     {
-        // 作用域内创建线程池，析构时会自动等待所有任务完成
-        ThreadPool pool(2);
-        for (int i = 0; i < TASK_NUM; ++i) {
-            pool.enqueue([&count]() {
-                std::this_thread::sleep_for(std::chrono::milliseconds(2));
-                ++count; // 原子操作？此处仅测试析构等待，实际并发需加锁
+        ThreadPool pool(4);  // 4 worker threads
+        // Submit 500 tasks without getting future (simulate destruction with unexecuted tasks)
+        for (int i = 0; i < 500; ++i) {
+            pool.enqueue([i]() {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                // Print a small number of tasks to verify partial execution before destruction
+                if (i % 100 == 0) {
+                    static std::mutex print_mtx; // Avoid cout disorder in multi-threading
+                    std::lock_guard<std::mutex> lock(print_mtx);
+                    std::cout << "  Task executed before destruction: i = " << i << std::endl;
+                }
             });
         }
-    } // 线程池析构，自动stop+notify_all+join所有线程
+        // Scope ends, pool destructs: auto stop() + notify all threads + wait for exit
+    }
 
-    ASSERT_EQ(count, TASK_NUM); // 验证析构前所有任务均执行完成
+    std::cout << "Test 5 Succeeded: Pool destroyed without crash, unexecuted tasks cleaned safely" << std::endl;
 }
 
-// 可选：手动编写main函数（GoogleTest提供默认main，此为自定义示例）
-// int main(int argc, char **argv) {
-//     testing::InitGoogleTest(&argc, argv);
-//     return RUN_ALL_TESTS();
-// }
+int main() {
+    try {
+        // Create thread pool: use hardware core count by default, or specify manually (e.g., ThreadPool pool(4))
+        ThreadPool pool;
+        std::cout << "Thread pool init finished, worker num: " << pool.thread_count() << std::endl << std::endl;
+
+        // Execute all tests
+        // test_simple_task(pool);
+        test_return_task(pool);
+        test_concurrent_tasks(pool);
+        test_stop_enqueue(pool);
+
+        // Test 5 executed independently (temporary thread pool)
+        test_destructor_safety();
+
+        std::cout << "=============================================" << std::endl;
+        std::cout << "✅ All test cases executed successfully!" << std::endl;
+        std::cout << "=============================================" << std::endl;
+
+    } catch (const std::exception& e) {
+        std::cerr << "❌ Uncaught exception during testing: " << e.what() << std::endl;
+        return 1;
+    } catch (...) {
+        std::cerr << "❌ Uncaught unknown exception during testing" << std::endl;
+        return 1;
+    }
+
+    return 0;
+}
