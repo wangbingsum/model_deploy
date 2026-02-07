@@ -7,8 +7,9 @@ target_link_libraries(test_thread_pool
 )
 
 add_executable(test_memory_pool test_memory_pool.cpp)
+add_executable(test_class test_class.cpp)
 
 install(
-    TARGETS test_sort test_thread_pool test_memory_pool
+    TARGETS test_sort test_thread_pool test_memory_pool test_class
     RUNTIME DESTINATION ${CMAKE_SOURCE_DIR}/bin  # 安装路径：项目根目录/bin
 )
